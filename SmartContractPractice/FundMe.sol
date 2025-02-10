@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
-//works on RemixIde
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 contract FundMe {
 
@@ -16,7 +16,14 @@ contract FundMe {
         addressToAmountFunded[msg.sender] = addressToAmountFunded[msg.sender] + msg.value;
     }
 
-    function withdraw() public {}
+    function withdraw() public {
+        for (uint256 funderIndex = 0 ; funderIndex <  funders.length; funderIndex++) {
+            address funder = funders[funderIndex];
+            addressToAmountFunded[funder] = 0;
+        }
+        funders = new address[](0);
+        payable(msg.sender).transfer(address(this).balance);
+    }
 
     function getPrice() public view returns (uint256) {
         //address 0x694AA1769357215DE4FAC081bf1f309aDC325306
