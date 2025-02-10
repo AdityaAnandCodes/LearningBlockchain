@@ -4,7 +4,17 @@ pragma solidity ^0.8.18;
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 contract FundMe {
+    
+    address public owner;
 
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require (msg.sender == owner, "Only owner can call this function");
+        _;
+    }
 
     uint256 public minimumUsd = 5e18;
     address[] public funders;
@@ -16,13 +26,14 @@ contract FundMe {
         addressToAmountFunded[msg.sender] = addressToAmountFunded[msg.sender] + msg.value;
     }
 
-    function withdraw() public {
+    function withdraw() public onlyOwner {
         for (uint256 funderIndex = 0 ; funderIndex <  funders.length; funderIndex++) {
             address funder = funders[funderIndex];
             addressToAmountFunded[funder] = 0;
         }
         funders = new address[](0);
-        payable(msg.sender).transfer(address(this).balance);
+        bool sendSuccess = payable(msg.sender).send(address(this).balance);
+        require(sendSuccess, "Failed to withdraw funds");
     }
 
     function getPrice() public view returns (uint256) {
